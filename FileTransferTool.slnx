@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/_01_Application/">
+    <Project Path="Application/FileTransferTool.csproj" />
+  </Folder>
+  <Folder Name="/_02_Services/">
+    <Project Path="Services/HS.Services.App/HS.Services.App.csproj" Id="ea929301-ce2d-44e4-8907-a9a472756eb1" />
+  </Folder>
+  <Folder Name="/_03_Domains/">
+    <Project Path="Domains/HS.Domains.App/HS.Domains.App.csproj" Id="5b226e1d-b9ce-41a7-9168-6b04e01f267e" />
+  </Folder>
+</Solution>
