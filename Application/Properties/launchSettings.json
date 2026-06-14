@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FileTransferTool": {
+        "commandName": "Project",
+        "commandLineArgs": "C:\\SoftwareDevelopment\\HornetSecurity\\Source.mp4 C:\\SoftwareDevelopment\\HornetSecurity\\destination\\Dest.mp4"
+    }
+  }
+}

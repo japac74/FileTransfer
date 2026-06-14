@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using FileTransferTool.Validations;
+using FluentValidation;
+using HS.Services.App.ModelsDto;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
@@ -25,6 +28,7 @@ services.AddSingleton<Application>();
 
 // Add IConfiguration to DI
 services.AddSingleton<IConfiguration>(configuration);
+services.AddSingleton<IValidator<FileCopyDto>>(new ValidateFilePaths());
 
 // Build the provider
 var provider = services.BuildServiceProvider();
