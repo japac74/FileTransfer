@@ -1,6 +1,6 @@
 ﻿using EnsureThat;
-using FileTransferTool.Validations;
 using FluentValidation;
+using HS.Services.App.Interfaces;
 using HS.Services.App.ModelsDto;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -9,6 +9,7 @@ public class Application
 {
     private readonly ILogger<Application> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IFilesService _filesService;
 
     private FileCopyDto _fileCopyDto;
     private string _sourcePath;
@@ -17,10 +18,11 @@ public class Application
     private readonly IValidator<FileCopyDto> _fileCopyValidator;
     
 
-    public Application(ILogger<Application> logger, IConfiguration configuration, IValidator<FileCopyDto> fileCopyValidator)
+    public Application(ILogger<Application> logger, IConfiguration configuration, IValidator<FileCopyDto> fileCopyValidator, IFilesService filesService)
     {
         _logger = EnsureArg.IsNotNull(logger, nameof(ILogger<Application>));
         _configuration = EnsureArg.IsNotNull(configuration, nameof(IConfiguration));
+        _filesService = EnsureArg.IsNotNull(filesService, nameof(IFilesService));
 
         _fileCopyValidator = EnsureArg.IsNotNull(fileCopyValidator, nameof(IValidator<FileCopyDto>));
     }
@@ -37,15 +39,15 @@ public class Application
             
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write("Enter source path: ");
-            _sourcePath = Console.ReadLine();
+            _sourcePath = Console.ReadLine()!.Trim();
 
             Console.Write("Enter target path: ");
-            _targetPath = Console.ReadLine();
+            _targetPath = Console.ReadLine()!.Trim();
             Console.Write("\n");
 
             //TODO - Remove hard coded paths and use the ones entered by the user
             _sourcePath = "C:\\SoftwareDevelopment\\HornetSecurity\\Source.mp4";
-            _targetPath = "C:\\SoftwareDevelopment\\HornetSecurit\\target";
+            _targetPath = "C:\\SoftwareDevelopment\\HornetSecurity\\target";
 
             // Prepare FileCopyDto object and validat paths and file name
             _fileCopyDto = new FileCopyDto()
@@ -71,7 +73,8 @@ public class Application
                 return;
             }
 
-            // Start copying the file            
+            // Start copying the file
+            _filesService.CopyFile(_fileCopyDto);
         }
         catch (Exception ex)
         {

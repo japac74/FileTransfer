@@ -1,5 +1,7 @@
 ﻿using FileTransferTool.Validations;
 using FluentValidation;
+using HS.Services.App;
+using HS.Services.App.Interfaces;
 using HS.Services.App.ModelsDto;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +31,7 @@ services.AddSingleton<Application>();
 // Add IConfiguration to DI
 services.AddSingleton<IConfiguration>(configuration);
 services.AddSingleton<IValidator<FileCopyDto>>(new ValidateFilePaths());
+services.AddSingleton<IFilesService, FilesService>();
 
 // Build the provider
 var provider = services.BuildServiceProvider();
@@ -36,6 +39,7 @@ var provider = services.BuildServiceProvider();
 // Run the app
 var app = provider.GetRequiredService<Application>();
 app.Run();
+
 
 // Proper cleanup
 await provider.DisposeAsync();
