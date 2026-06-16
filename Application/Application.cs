@@ -56,6 +56,7 @@ public class Application
                 SourcePath = Path.GetDirectoryName(_sourcePath),
                 FileName = Path.GetFileName(_sourcePath),
                 TargetPath = _targetPath,
+                FullTargetPath = $"{_targetPath}\\{Path.GetFileName(_sourcePath)}"
             };           
             
             var results = _fileCopyValidator.Validate(_fileCopyDto);
@@ -69,7 +70,8 @@ public class Application
                     Console.WriteLine($"-> {failure.ErrorMessage}");
                 }
 
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ResetColor();
+
                 return;
             }
 

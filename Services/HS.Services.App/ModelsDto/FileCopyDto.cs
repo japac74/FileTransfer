@@ -9,5 +9,7 @@
         public required string TargetPath { get; set; }
 
         public required string FullSourcePath { get; set; }
+
+        public required string FullTargetPath { get; set; }
     }
 }
