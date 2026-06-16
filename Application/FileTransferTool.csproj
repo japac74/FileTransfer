@@ -27,4 +27,8 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\Services\HS.Services.App\HS.Services.App.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Workers\" />
+	</ItemGroup>
 </Project>

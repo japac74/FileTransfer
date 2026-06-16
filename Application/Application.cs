@@ -28,7 +28,7 @@ public class Application
     }
 
 
-    public void Run()
+    public async void Run()
     {
         try
         {
@@ -73,8 +73,12 @@ public class Application
                 return;
             }
 
+            Console.WriteLine("Before Service call.");
+
             // Start copying the file
-            _filesService.CopyFile(_fileCopyDto);
+            await _filesService.CopyFile(_fileCopyDto);
+
+            Console.WriteLine("After Service call.");
         }
         catch (Exception ex)
         {

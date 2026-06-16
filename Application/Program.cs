@@ -40,6 +40,7 @@ var provider = services.BuildServiceProvider();
 var app = provider.GetRequiredService<Application>();
 app.Run();
 
+Console.WriteLine("*** end of program ***");
 
 // Proper cleanup
 await provider.DisposeAsync();
