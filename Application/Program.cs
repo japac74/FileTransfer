@@ -38,9 +38,9 @@ var provider = services.BuildServiceProvider();
 
 // Run the app
 var app = provider.GetRequiredService<Application>();
-app.Run();
+await app.Run();
 
-Console.WriteLine("*** end of program ***");
+Console.WriteLine("\n*** end of program ***");
 
 // Proper cleanup
 await provider.DisposeAsync();

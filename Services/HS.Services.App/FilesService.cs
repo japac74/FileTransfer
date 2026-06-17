@@ -3,8 +3,6 @@ using HS.Domains.App;
 using HS.Services.App.Interfaces;
 using HS.Services.App.ModelsDto;
 using Microsoft.Extensions.Configuration;
-using System.Buffers;
-using System.Security.Cryptography;
 using System.Threading.Channels;
 
 namespace HS.Services.App
@@ -13,23 +11,11 @@ namespace HS.Services.App
     {
         private readonly IConfiguration _configuration;
 
-        private readonly Channel<FileChunk> _transferChannel;
-
         private readonly int _chunkSize;
 
         public FilesService(IConfiguration configuration)
         {
             _configuration = EnsureArg.IsNotNull(configuration, nameof(IConfiguration));
-
-            // Channel options
-            var options = new BoundedChannelOptions(capacity: 5)
-            {
-                SingleWriter = true,
-                SingleReader = true,
-                FullMode = BoundedChannelFullMode.Wait 
-            };
-
-            _transferChannel = Channel.CreateBounded<FileChunk>(options);
 
             _chunkSize = Convert.ToInt32(_configuration["ChunkSize"]);
         }
@@ -43,29 +29,35 @@ namespace HS.Services.App
         {         
             try
             {
-                Console.WriteLine("Starting to copy, please wait...");
+                Console.WriteLine("Starting to copy, please wait...\n");
+
+                // Channel options
+                var options = new BoundedChannelOptions(capacity: 5)
+                {
+                    SingleWriter = true,
+                    SingleReader = true,
+                    FullMode = BoundedChannelFullMode.Wait
+                };
+
+                Channel<FileChunk> _transferChannel = Channel.CreateBounded<FileChunk>(options);
 
                 // Read file
-                Task producerTask = ProduceChunkAsync(fileCopyDto, _transferChannel.Writer);
+                Task producerTask = Task.Run(() => ProduceChunkAsync(fileCopyDto, _transferChannel.Writer));
 
                 // Save file via channel
-                Task consumerTask = ConsumeChunksAsync(fileCopyDto, _transferChannel.Reader);
+                Task consumerTask = Task.Run(() => ConsumeChunksAsync(fileCopyDto, _transferChannel.Reader));
 
-                // Wait for both producer and consumer to complete - PROBLEM
-                //await Task.WhenAll(producerTask, consumerTask);
+                // Wait for both producer and consumer to complete
+                await Task.WhenAll(producerTask, consumerTask);
 
-
-                Console.WriteLine("File copied successfully.");
+                Console.WriteLine("\nFile copied successfully.\n");
 
                 //COMPUTE SHA256 HASHES OF SOURCE AND TARGET FILES TO VERIFY INTEGRITY
                 string sourceSHA = Encrypt.ComputeSHA256(fileCopyDto.FullSourcePath);
-                //string targetSHA = Encrypt.ComputeSHA256(fileCopyDto.FullTargetPath);
-
                 Console.WriteLine($"Source SHA256: {sourceSHA}");
-                //Console.WriteLine($"Target SHA256: {targetSHA}");
 
-                //TODO Need to take care of treads to Wait
-                Console.ReadLine();
+                string targetSHA = Encrypt.ComputeSHA256(fileCopyDto.FullTargetPath);
+                Console.WriteLine($"Target SHA256: {targetSHA}");
 
                 return true;
             }
@@ -88,29 +80,28 @@ namespace HS.Services.App
         {
             try
             {
-                FileStream stream = new FileStream(fileCopyDto.FullSourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: _chunkSize, useAsync: true);
+                await using FileStream stream = new FileStream(fileCopyDto.FullSourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: _chunkSize, useAsync: true);
 
                 int chunkIndex = 0;
                 long offset = 0;
+                var buffer = new byte[_chunkSize];
 
                 while (true)
                 {
                     // Allocate array
-                    var buffer = new byte[_chunkSize];
                     int bytesRead = await stream.ReadAsync(buffer, 0, _chunkSize);
 
                     if (bytesRead == 0) break;
 
-                    // Last chunk, resize array
-                    if (bytesRead < _chunkSize)
-                    {
-                        Array.Resize(ref buffer, bytesRead);
-                    }
-
                     // Create MD5 hash
-                    string md5HashHex =Encrypt.ComputeMD5(buffer);
 
-                    var chunkMessage = new FileChunk(chunkIndex, offset, buffer.Take(bytesRead).ToArray(), md5HashHex);
+                    //// Copy only the bytes that were read
+                    byte[] chunkData = new byte[bytesRead];
+                    Array.Copy(buffer, 0, chunkData, 0, bytesRead);
+
+                    string md5HashHex = Encrypt.ComputeMD5(chunkData);
+
+                    var chunkMessage = new FileChunk(chunkIndex, offset, chunkData, md5HashHex);
 
                     Console.WriteLine($"Index: {chunkIndex}, Position: {offset}, Bytes Read: {bytesRead}, Hash: {md5HashHex}");
 
@@ -147,10 +138,12 @@ namespace HS.Services.App
         {
             try
             {
-                await using var outputStream = new FileStream(fileCopyDto.FullTargetPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: _chunkSize, useAsync: true);
+                await using FileStream outputStream = new FileStream(fileCopyDto.FullTargetPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: _chunkSize, useAsync: true);
 
+                int chunkCount = 0;
                 await foreach (var chunk in reader.ReadAllAsync())
                 {
+                    chunkCount++;
                     // Create MD5 hash
                     string md5HashHex = Encrypt.ComputeMD5(chunk.Payload);
 

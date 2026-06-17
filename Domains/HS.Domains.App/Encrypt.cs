@@ -27,5 +27,17 @@ namespace HS.Domains.App
             byte[] hashBytes = SHA256.HashData(stream);
             return Convert.ToHexString(hashBytes).ToLowerInvariant();
         }
+
+        /// <summary>
+        /// Computes the SHA-1 hash of a file
+        /// </summary>
+        /// <param name="filePath">path to the file</param>
+        /// <returns>SHA-1 hash as a string</returns>
+        public static string ComputeSHA1(string filePath)
+        {
+            using var stream = File.OpenRead(filePath);
+            byte[] hashBytes = SHA1.HashData(stream);
+            return Convert.ToHexString(hashBytes).ToLowerInvariant();
+        }
     }
 }
