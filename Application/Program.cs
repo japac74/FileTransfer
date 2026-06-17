@@ -31,7 +31,7 @@ services.AddSingleton<Application>();
 // Add IConfiguration to DI
 services.AddSingleton<IConfiguration>(configuration);
 services.AddSingleton<IValidator<FileCopyDto>>(new ValidateFilePaths());
-services.AddSingleton<IFilesService, FilesService>();
+services.AddScoped<IFilesService, FilesService>();
 
 // Build the provider
 var provider = services.BuildServiceProvider();
