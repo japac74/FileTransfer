@@ -2,13 +2,11 @@
 using FluentValidation;
 using HS.Services.App.Interfaces;
 using HS.Services.App.ModelsDto;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 public class Application
 {
     private readonly ILogger<Application> _logger;
-    private readonly IConfiguration _configuration;
     private readonly IFilesService _filesService;
 
     private FileCopyDto _fileCopyDto;
@@ -18,10 +16,9 @@ public class Application
     private readonly IValidator<FileCopyDto> _fileCopyValidator;
     
 
-    public Application(ILogger<Application> logger, IConfiguration configuration, IValidator<FileCopyDto> fileCopyValidator, IFilesService filesService)
+    public Application(ILogger<Application> logger, IValidator<FileCopyDto> fileCopyValidator, IFilesService filesService)
     {
         _logger = EnsureArg.IsNotNull(logger, nameof(ILogger<Application>));
-        _configuration = EnsureArg.IsNotNull(configuration, nameof(IConfiguration));
         _filesService = EnsureArg.IsNotNull(filesService, nameof(IFilesService));
 
         _fileCopyValidator = EnsureArg.IsNotNull(fileCopyValidator, nameof(IValidator<FileCopyDto>));
@@ -32,22 +29,18 @@ public class Application
     {
         try
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.ForegroundColor = ConsoleColor.Yellow;            
             Console.WriteLine("Copy a file from source to destination.  Please enter Full Path.");
             Console.WriteLine("e.g. c\\:source\\my_big_file.mp4");
             Console.WriteLine("================================================================\n");
             
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("Enter source path: ");
+            Console.Write("Enter source path, including the filename: ");
             _sourcePath = Console.ReadLine()!.Trim();
 
-            Console.Write("Enter target path: ");
+            Console.Write("Enter target path, without the filename: ");
             _targetPath = Console.ReadLine()!.Trim();
             Console.Write("\n");
-
-            //TODO - Remove hard coded paths and use the ones entered by the user
-            _sourcePath = "C:\\SoftwareDevelopment\\HornetSecurity\\Source.mp4";
-            _targetPath = "C:\\SoftwareDevelopment\\HornetSecurity\\target";
 
             // Prepare FileCopyDto object and validat paths and file name
             _fileCopyDto = new FileCopyDto()
@@ -81,12 +74,6 @@ public class Application
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-
         }
-        //if (allArgs.Length > 1)
-        //{
-        //    Console.WriteLine($"First real parameter: {allArgs[1]}");
-        //}
-
     }
 }

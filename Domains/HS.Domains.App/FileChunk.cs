@@ -2,7 +2,6 @@
 {
     public class FileChunk
     {
-        //public FileChunk(int chunkIndex, int offset, ReadOnlyMemory<byte> payload, string md5)
         public FileChunk(int chunkIndex, long offset, byte[] payload, string md5)
         {
             ChunkIndex = chunkIndex;
